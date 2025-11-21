@@ -77,7 +77,6 @@ This project is optimized for deployment on [Vercel](https://vercel.com/).
 4.  Deploy!
 
 ## Screenshots
-*(Add your screenshots here)*
 
 ## License
 [MIT License](LICENSE)
