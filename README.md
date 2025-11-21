@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SOS Wristband System – NFC & QR Emergency Profile Platform
 
-## Getting Started
+## Overview
+The **SOS Wristband System** is a comprehensive emergency profile platform designed for schools and organizations. It allows administrators to manage student safety profiles and provides instant access to critical medical and contact information via NFC wristbands or QR codes.
 
-First, run the development server:
+The system features a modern, responsive "Blue-Green" (Teal/Cyan) UI, a secure admin panel, and a mobile-first public emergency card view.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+- **Student Management**: CRUD operations for student records.
+- **Medical Profiles**: Detailed tracking of blood type, allergies, chronic conditions, and medications.
+- **Emergency Contacts**: Support for multiple emergency contacts with one-tap calling.
+- **Photo Upload**: Secure storage and display of student photos.
+- **Public Emergency Card**: A read-only, mobile-optimized profile page accessible via unique URL/QR code.
+- **QR Code Generation**: Built-in QR code generator for each student profile.
+- **Responsive Design**: Fully responsive UI built with Tailwind CSS and Shadcn UI.
+- **Secure**: Firebase Authentication and Firestore security rules.
+
+## Tech Stack
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/)
+- **Backend / Database**: [Firebase](https://firebase.google.com/) (Auth, Firestore, Storage)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+## Environment Variables
+To run this project, you will need to add the following environment variables to your `.env.local` file. Do **NOT** commit this file to version control.
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/hakaninki/sos-wristband.git
+    cd sos-wristband
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-## Learn More
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+4.  **Open the app:**
+    Navigate to [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Admin Login (Local Only)
+Since user registration is restricted, you must create your first admin user directly in the **Firebase Console** under **Authentication** > **Users**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Once created, you can log in at `/admin/login`.
 
-## Deploy on Vercel
+## Firebase Setup Guide
+1.  Create a new project at [Firebase Console](https://console.firebase.google.com/).
+2.  **Authentication**: Enable **Email/Password** provider.
+3.  **Firestore Database**: Create a database (start in test mode for development, but secure rules for production).
+4.  **Storage**: Enable Storage for photo uploads.
+5.  **Project Settings**: Register a web app and copy the configuration keys to your `.env.local` file.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
+This project is optimized for deployment on [Vercel](https://vercel.com/).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1.  Push your code to a GitHub repository.
+2.  Import the project into Vercel.
+3.  Add the **Environment Variables** from your `.env.local` file to the Vercel project settings.
+4.  Deploy!
+
+## Screenshots
+*(Add your screenshots here)*
+
+## License
+[MIT License](LICENSE)
