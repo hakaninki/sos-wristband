@@ -1,4 +1,3 @@
-// lib/students.ts
 import { db, storage } from "./firebase";
 import {
     collection,
@@ -11,39 +10,10 @@ import {
     query,
     where,
     serverTimestamp,
-    Timestamp,
     orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-
-export interface EmergencyContact {
-    name: string;
-    relation: string;
-    phone: string;
-}
-
-export interface MedicalProfile {
-    bloodType: string;
-    allergies: string;
-    chronicConditions: string;
-    medications: string;
-    otherInfo: string;
-}
-
-export interface Student {
-    id: string;
-    slug: string;
-    firstName: string;
-    lastName: string;
-    schoolName: string;
-    class: string;
-    notes: string;
-    photoUrl: string;
-    medical: MedicalProfile;
-    emergencyContacts: EmergencyContact[];
-    createdAt?: Timestamp;
-    updatedAt?: Timestamp;
-}
+import { Student } from "./types";
 
 const STUDENTS_COLLECTION = "students";
 
@@ -52,10 +22,16 @@ function generateSlug() {
     return Math.random().toString(36).substring(2, 10);
 }
 
-export async function createStudent(data: Omit<Student, "id" | "slug" | "createdAt" | "updatedAt">) {
+export async function createStudentForSchool(data: Omit<Student, "id" | "slug" | "createdAt" | "updatedAt" | "schoolId">, schoolId: string) {
     const slug = generateSlug();
+
+    // Ensure classId and className are present if provided in data, otherwise they might be undefined
+    // The type definition says they are optional on Student interface but required for creation logic if we want to enforce it.
+    // For now, we pass them through from data.
+
     const docRef = await addDoc(collection(db, STUDENTS_COLLECTION), {
         ...data,
+        schoolId, // Ensure schoolId is set
         slug,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -63,8 +39,12 @@ export async function createStudent(data: Omit<Student, "id" | "slug" | "created
     return docRef.id;
 }
 
-export async function getStudents() {
-    const q = query(collection(db, STUDENTS_COLLECTION), orderBy("createdAt", "desc"));
+export async function listStudentsForSchool(schoolId: string) {
+    const q = query(
+        collection(db, STUDENTS_COLLECTION),
+        where("schoolId", "==", schoolId),
+        orderBy("createdAt", "desc")
+    );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Student));
 }
@@ -88,15 +68,18 @@ export async function getStudentBySlug(slug: string) {
     return null;
 }
 
-export async function updateStudent(id: string, data: Partial<Student>) {
+export async function updateStudentForSchool(id: string, data: Partial<Student>) {
     const docRef = doc(db, STUDENTS_COLLECTION, id);
+    // Prevent updating schoolId via this function for now to ensure safety
+    const { schoolId, ...updateData } = data;
+
     await updateDoc(docRef, {
-        ...data,
+        ...updateData,
         updatedAt: serverTimestamp(),
     });
 }
 
-export async function deleteStudent(id: string, photoUrl?: string) {
+export async function deleteStudentForSchool(id: string, photoUrl?: string) {
     await deleteDoc(doc(db, STUDENTS_COLLECTION, id));
     if (photoUrl) {
         try {

@@ -2,12 +2,52 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper to check if user is staff for a specific school
+    function isStaffForSchool(schoolId) {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.schoolId == schoolId;
+    }
+
+    // Helper to check if user is a System Owner
+    function isOwner() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role == "owner";
+    }
+
+    match /schools/{schoolId} {
+      allow read: if request.auth != null; // Admins need to read their school, Owners read all
+      allow write: if isOwner(); // Only Owner can create/edit schools
+    }
+
+    match /staff/{userId} {
+      // Owner can read all staff
+      // Users can read their own profile
+      allow read: if (request.auth != null && request.auth.uid == userId) || isOwner();
+      
+      // Only Owner can create/edit staff (admins created via secondary auth by owner)
+      allow write: if isOwner(); 
+    }
+
     match /students/{studentId} {
       // Public read access for everyone (needed for public profile)
       allow read: if true;
       
-      // Write access only for authenticated users
-      allow write: if request.auth != null;
+      // Write access restricted to staff of the same school OR Owner
+      allow create: if isStaffForSchool(request.resource.data.schoolId) || isOwner();
+      
+      // Allow update if:
+      // 1. Student belongs to user's school (Standard case)
+      // 2. Student has NO school yet, and user is claiming them for their school (Migration case)
+      // 3. User is Owner
+      allow update: if 
+        ('schoolId' in resource.data && isStaffForSchool(resource.data.schoolId)) ||
+        (!('schoolId' in resource.data) && isStaffForSchool(request.resource.data.schoolId)) ||
+        isOwner();
+      
+      allow delete: if ('schoolId' in resource.data && isStaffForSchool(resource.data.schoolId)) || isOwner();
     }
   }
 }
@@ -20,7 +60,7 @@ service firebase.storage {
       // Public read access for student photos
       allow read: if true;
       
-      // Write access only for authenticated users
+      // Write access only for authenticated users (can be refined to check schoolId if metadata exists)
       allow write: if request.auth != null;
     }
   }

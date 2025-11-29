@@ -9,16 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { createStudent, updateStudent, uploadStudentPhoto, Student, EmergencyContact } from "@/lib/students";
+import { createStudentForSchool, updateStudentForSchool, uploadStudentPhoto } from "@/lib/students"; // Fix import
+import { Student, EmergencyContact } from "@/lib/types";
 import { Plus, Trash2, Save, ArrowLeft, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StudentFormProps {
     initialData?: Student;
     isEditing?: boolean;
+    schoolId?: string; // Required for creation
 }
 
-export function StudentForm({ initialData, isEditing = false }: StudentFormProps) {
+export function StudentForm({ initialData, isEditing = false, schoolId }: StudentFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [photo, setPhoto] = useState<File | null>(null);
@@ -97,13 +99,16 @@ export function StudentForm({ initialData, isEditing = false }: StudentFormProps
                 if (photo) {
                     photoUrl = await uploadStudentPhoto(photo, initialData.id);
                 }
-                await updateStudent(initialData.id, { ...formData, photoUrl });
+                await updateStudentForSchool(initialData.id, { ...formData, photoUrl });
             } else {
                 // Create
-                const newStudentId = await createStudent({ ...formData, photoUrl: "" });
+                if (!schoolId) {
+                    throw new Error("School ID is required to create a student");
+                }
+                const newStudentId = await createStudentForSchool({ ...formData, photoUrl: "" }, schoolId);
                 if (photo) {
                     photoUrl = await uploadStudentPhoto(photo, newStudentId);
-                    await updateStudent(newStudentId, { photoUrl });
+                    await updateStudentForSchool(newStudentId, { photoUrl });
                 }
             }
 

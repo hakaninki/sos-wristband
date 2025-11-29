@@ -7,6 +7,7 @@ import { auth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, LogOut } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminLayout({
     children,
@@ -54,6 +55,23 @@ export default function AdminLayout({
                             SOS System
                         </span>
                     </div>
+
+                    <nav className="hidden md:flex items-center gap-6">
+                        <Link
+                            href="/admin/classes"
+                            className={`text-sm font-medium transition-colors hover:text-teal-600 ${pathname.startsWith("/admin/classes") ? "text-teal-600" : "text-muted-foreground"
+                                }`}
+                        >
+                            Classes
+                        </Link>
+                        <Link
+                            href="/admin/teachers"
+                            className={`text-sm font-medium transition-colors hover:text-teal-600 ${pathname.startsWith("/admin/teachers") ? "text-teal-600" : "text-muted-foreground"
+                                }`}
+                        >
+                            Teachers
+                        </Link>
+                    </nav>
 
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-border/50">

@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function staffDoc() {
+      return get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+    }
+
+    function hasStaffDoc() {
+      return exists(/databases/$(database)/documents/staff/$(request.auth.uid));
+    }
+
+    function isOwner() {
+      return isAuthenticated() && hasStaffDoc() && staffDoc().role == "owner";
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && hasStaffDoc() && staffDoc().role == "admin";
+    }
+
+    function isTeacher() {
+      return isAuthenticated() && hasStaffDoc() && staffDoc().role == "teacher";
+    }
+
+    function teacherOwnsStudent(studentData) {
+      let s = staffDoc();
+      return s.role == "teacher"
+          && studentData.schoolId == s.schoolId
+          && studentData.classId in s.classIds;
+    }
+
+    function adminCanAccessResource(resourceData) {
+       let s = staffDoc();
+       return resourceData.schoolId == s.schoolId;
+    }
+
+    // STAFF
+    match /staff/{userId} {
+
+      // Owner: read all
+      // Admin: read staff in same school
+      // Any user: read own doc
+      allow read: if isOwner()
+               || request.auth.uid == userId
+               || (isAdmin() && resource.data.schoolId == staffDoc().schoolId);
+
+      // Owner: create admins
+      // Admin: create teachers in own school
+      allow create: if
+        (
+          isOwner()
+          && request.resource.data.role == "admin"
+        )
+        ||
+        (
+          isAdmin()
+          && request.resource.data.role == "teacher"
+          && request.resource.data.schoolId == staffDoc().schoolId
+        );
+
+      // Owner: update admins
+      // Admin: update teachers in own school
+      allow update: if
+        (
+          isOwner()
+          && resource.data.role == "admin"
+        )
+        ||
+        (
+          isAdmin()
+          && resource.data.role == "teacher"
+          && resource.data.schoolId == staffDoc().schoolId
+        );
+
+      // Owner: delete admins
+      // Admin: delete teachers in own school
+      allow delete: if
+        (
+          isOwner()
+          && resource.data.role == "admin"
+        )
+        ||
+        (
+          isAdmin()
+          && resource.data.role == "teacher"
+          && resource.data.schoolId == staffDoc().schoolId
+        );
+    }
+
+    // SCHOOLS
+    match /schools/{schoolId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isOwner();
+    }
+
+    // CLASSES
+    match /classes/{classId} {
+
+      allow read: if
+        isOwner()
+        ||
+        (isAdmin() && adminCanAccessResource(resource.data))
+        ||
+        (
+          isTeacher()
+          && resource.data.schoolId == staffDoc().schoolId
+          && classId in staffDoc().classIds
+        );
+
+      allow create: if
+        isAdmin()
+        && adminCanAccessResource(request.resource.data);
+
+      allow update, delete: if
+        isAdmin()
+        && adminCanAccessResource(resource.data);
+    }
+
+    function teacherCanReadStudent(studentData) {
+      let s = staffDoc();
+      return s.role == "teacher"
+          && studentData.schoolId == s.schoolId;
+    }
+
+    // STUDENTS
+    match /students/{studentId} {
+
+      allow read: if
+        isOwner()
+        ||
+        (isAdmin() && adminCanAccessResource(resource.data))
+        ||
+        teacherCanReadStudent(resource.data);
+
+      allow create: if teacherOwnsStudent(request.resource.data);
+      allow update: if teacherOwnsStudent(resource.data);
+      allow delete: if teacherOwnsStudent(resource.data);
+    }
+  }
+}
