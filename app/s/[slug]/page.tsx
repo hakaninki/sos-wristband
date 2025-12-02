@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 export const dynamic = "force-dynamic";
 
 interface PublicStudentProfile extends Omit<Student, "className"> {
+    schoolName: string;
     teacherName: string;
     className: string;
 }
