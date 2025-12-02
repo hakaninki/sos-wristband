@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 export const dynamic = "force-dynamic";
 
 interface PublicStudentProfile extends Student {
-    schoolName?: string;
-    teacherName?: string;
-    className?: string;
+    schoolName: string;
+    teacherName: string;
+    className: string;
 }
 
 async function getStudentBySlug(slug: string | undefined | null): Promise<PublicStudentProfile | null> {
