@@ -9,10 +9,9 @@ import { Badge } from "@/components/ui/badge";
 // Force dynamic rendering since we're fetching data based on slug
 export const dynamic = "force-dynamic";
 
-interface PublicStudentProfile extends Student {
-    schoolName?: string;
-    teacherName?: string;
-    className?: string;
+interface PublicStudentProfile extends Omit<Student, "className"> {
+    teacherName: string;
+    className: string;
 }
 
 async function getStudentBySlug(slug: string | undefined | null): Promise<PublicStudentProfile | null> {
@@ -31,8 +30,8 @@ async function getStudentBySlug(slug: string | undefined | null): Promise<Public
         }
 
         const doc = snapshot.docs[0];
-        const data = doc.data() as Student;
-        const student = { id: doc.id, ...data };
+        const data = doc.data();
+        const student = { id: doc.id, ...data } as Student;
 
         // Fetch related data in parallel
         const promises = [];
