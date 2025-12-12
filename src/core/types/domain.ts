@@ -9,6 +9,13 @@ export interface School {
     address?: string;
     phone?: string;
     contactEmail?: string;
+    contactName?: string;
+    contactPhone?: string;
+
+    city?: string;
+    country?: string;
+    website?: string;
+    ownerNotes?: string;
 
     // Visuals
     logoUrl?: string;

@@ -1,5 +1,4 @@
-import { ShieldSubtle, Server, Lock } from "lucide-react"; // Custom icon names
-import { EyeOff, ShieldCheck, LockKeyhole } from "lucide-react";
+import { Server, EyeOff, ShieldCheck, LockKeyhole } from "lucide-react";
 import { TranslationKeys } from "../../(public)/translations";
 
 interface SecuritySectionProps {

@@ -151,7 +151,7 @@ export function StudentForm({ initialData, classes, onSubmit, isSubmitting }: St
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="wristbandStatus">Wristband Status</Label>
-                            <Select value={wristbandStatus} onValueChange={setWristbandStatus}>
+                            <Select value={wristbandStatus} onValueChange={(val) => setWristbandStatus(val as any)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Status" />
                                 </SelectTrigger>
