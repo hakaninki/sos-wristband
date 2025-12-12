@@ -33,6 +33,8 @@ export async function createStudentForSchool(data: Omit<Student, "id" | "slug" |
         ...data,
         schoolId, // Ensure schoolId is set
         slug,
+        wristbandStatus: data.wristbandStatus || "needs_production", // Default if not provided
+        schoolNumber: data.schoolNumber || "", // Default if not provided
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     });
@@ -50,6 +52,9 @@ export async function listStudentsForSchool(schoolId: string) {
 }
 
 export async function getStudent(id: string) {
+    if (!id) {
+        throw new Error("getStudent called without id");
+    }
     const docRef = doc(db, STUDENTS_COLLECTION, id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -95,4 +100,26 @@ export async function uploadStudentPhoto(file: File, studentId: string) {
     const storageRef = ref(storage, `students/${studentId}/profile.jpg`);
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
+}
+
+export async function getAllStudents(filters?: { schoolId?: string; classId?: string; wristbandStatus?: string }) {
+    let q = query(collection(db, STUDENTS_COLLECTION), orderBy("createdAt", "desc"));
+
+    if (filters?.schoolId && filters.schoolId !== "all") {
+        q = query(q, where("schoolId", "==", filters.schoolId));
+    }
+
+    // Note: Firestore requires composite indexes for multiple equality/range filters with orderBy.
+    // If classId/wristbandStatus are used, we might need indexes. 
+
+    if (filters?.classId && filters.schoolId && filters.classId !== "all") {
+        q = query(q, where("classId", "==", filters.classId));
+    }
+
+    if (filters?.wristbandStatus && filters.wristbandStatus !== "all") {
+        q = query(q, where("wristbandStatus", "==", filters.wristbandStatus));
+    }
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Student));
 }

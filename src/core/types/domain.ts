@@ -79,6 +79,9 @@ export interface Student {
     slug: string; // Public profile slug
 
     wristbandId?: string; // SOS wristband identifier
+    wristbandStatus?: "none" | "needs_production" | "produced" | "shipped" | "active"; // Status of the physical wristband
+
+    schoolNumber?: string; // Internal school ID for the student
 
     photoUrl?: string;
 

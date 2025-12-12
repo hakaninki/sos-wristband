@@ -5,7 +5,7 @@ import { Button } from "@/src/shared/ui/button";
 import { Card, CardContent } from "@/src/shared/ui/card";
 import { Badge } from "@/src/shared/ui/badge";
 import { useSchools } from "@/src/modules/schools/application/useSchools";
-import { Plus, Building2, ChevronRight, Loader2 } from "lucide-react";
+import { Plus, Building2, ChevronRight, Loader2, Mail } from "lucide-react";
 
 export default function SchoolsListPage() {
     const { data: schools, isLoading } = useSchools();
@@ -17,6 +17,20 @@ export default function SchoolsListPage() {
             </div>
         );
     }
+
+    const handleInvite = async (schoolId: string) => {
+        try {
+            // @ts-ignore
+            const { createInvite } = await import("@/lib/invites");
+            const invite = await createInvite(schoolId);
+            const link = `${window.location.origin}/register?token=${invite.token}`;
+            // Simple prompt to copy the link
+            window.prompt("Admin Invite Link (Copy and send to admin):", link);
+        } catch (error) {
+            console.error("Failed to create invite:", error);
+            alert("Failed to create invite.");
+        }
+    };
 
     return (
         <div className="space-y-8">
@@ -37,8 +51,13 @@ export default function SchoolsListPage() {
                     <Card key={school.id} className="hover:shadow-md transition-shadow border-gray-200">
                         <CardContent className="p-6 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                                    <Building2 className="h-6 w-6" />
+                                <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 overflow-hidden relative">
+                                    {school.logoUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={school.logoUrl} alt={school.name} className="h-full w-full object-cover" />
+                                    ) : (
+                                        <Building2 className="h-6 w-6" />
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-900">{school.name}</h3>
@@ -54,11 +73,21 @@ export default function SchoolsListPage() {
                                     </div>
                                 </div>
                             </div>
-                            <Link href={`/owner/schools/${school.id}`}>
-                                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-indigo-600">
-                                    Manage <ChevronRight className="ml-1 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                    onClick={() => handleInvite(school.id)}
+                                >
+                                    <Mail className="mr-1 h-3 w-3" /> Invite Admin
                                 </Button>
-                            </Link>
+                                <Link href={`/owner/schools/${school.id}`}>
+                                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-indigo-600">
+                                        Manage <ChevronRight className="ml-1 h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardContent>
                     </Card>
                 ))}

@@ -70,7 +70,9 @@ export default function SchoolDetailsPage() {
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900">{studentsLoading ? "..." : students?.length || 0}</h3>
                         <p className="text-sm text-muted-foreground mb-4">Total Students</p>
-                        <Button variant="outline" className="w-full" disabled>View Students (Read Only)</Button>
+                        <Link href={`/owner/schools/${school.id}/students`} className="w-full">
+                            <Button variant="outline" className="w-full">View & Manage Students</Button>
+                        </Link>
                     </CardContent>
                 </Card>
 

@@ -55,6 +55,7 @@ export default function NewClassPage() {
                 teacherId
             });
             router.push("/admin/classes");
+            router.refresh();
         } catch (error) {
             console.error("Failed to create class:", error);
             alert("Failed to create class. Please try again.");

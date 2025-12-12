@@ -127,6 +127,14 @@ export default function StudentsPage() {
                                     <p className="text-sm font-medium text-teal-600 bg-teal-50 px-3 py-1 rounded-full inline-block mt-1">
                                         {(student as any).className || (student as any).class || "Class " + student.classId}
                                     </p>
+                                    <div className="flex flex-col gap-1 mt-2 items-center">
+                                        {(student as any).schoolNumber && (
+                                            <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-0.5 rounded">
+                                                ID: {(student as any).schoolNumber}
+                                            </span>
+                                        )}
+                                        <StatusBadge status={(student as any).wristbandStatus} />
+                                    </div>
                                 </div>
                                 <div className="w-full pt-2 border-t border-gray-100">
                                     <div className="flex items-center justify-center text-sm text-muted-foreground gap-2">
@@ -215,5 +223,29 @@ export default function StudentsPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+function StatusBadge({ status }: { status?: string }) {
+    if (!status || status === "none") return <span className="text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded">No Band</span>;
+
+    const styles: Record<string, string> = {
+        needs_production: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        produced: "bg-blue-100 text-blue-800 border-blue-200",
+        shipped: "bg-purple-100 text-purple-800 border-purple-200",
+        active: "bg-green-100 text-green-800 border-green-200",
+    };
+
+    const label: Record<string, string> = {
+        needs_production: "Production",
+        produced: "Produced",
+        shipped: "Shipped",
+        active: "Active",
+    };
+
+    return (
+        <span className={`text-xs font-medium px-2 py-0.5 rounded border ${styles[status] || "bg-gray-100 text-gray-800"}`}>
+            {label[status] || status}
+        </span>
     );
 }

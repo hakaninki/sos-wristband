@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent } from "@/src/shared/ui/card";
 import { Badge } from "@/src/shared/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAllStaff } from "@/src/modules/staff/application/useStaff";
 import { useSchools } from "@/src/modules/schools/application/useSchools";
 import { Shield, User, Loader2, Mail, School as SchoolIcon } from "lucide-react";
@@ -9,6 +11,12 @@ import { Shield, User, Loader2, Mail, School as SchoolIcon } from "lucide-react"
 export default function StaffListPage() {
     const { data: staff, isLoading: staffLoading } = useAllStaff();
     const { data: schools, isLoading: schoolsLoading } = useSchools();
+    const [selectedSchoolId, setSelectedSchoolId] = useState<string>("all");
+
+    const filteredStaff = staff?.filter(member => {
+        if (selectedSchoolId === "all") return true;
+        return member.schoolId === selectedSchoolId;
+    }) || [];
 
     if (staffLoading || schoolsLoading) {
         return (
@@ -26,13 +34,28 @@ export default function StaffListPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">All Staff</h1>
-                <p className="text-muted-foreground mt-1">System-wide staff directory.</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">All Staff</h1>
+                    <p className="text-muted-foreground mt-1">System-wide staff directory.</p>
+                </div>
+                <div className="w-full md:w-1/3">
+                    <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Filter by School" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Schools</SelectItem>
+                            {schools?.map(s => (
+                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="grid gap-4">
-                {staff?.map((member) => (
+                {filteredStaff?.map((member) => (
                     <Card key={member.id} className="border-gray-200">
                         <CardContent className="p-4 flex items-center justify-between">
                             <div className="flex items-center gap-6">

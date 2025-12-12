@@ -29,27 +29,35 @@ service cloud.firestore {
     function teacherOwnsStudent(studentData) {
       let s = staffDoc();
       return s.role == "teacher"
-          && studentData.schoolId == s.schoolId
-          && studentData.classId in s.classIds;
+        && studentData.schoolId == s.schoolId
+        && studentData.classId in s.classIds;
     }
 
     function adminCanAccessResource(resourceData) {
-       let s = staffDoc();
-       return resourceData.schoolId == s.schoolId;
+      let s = staffDoc();
+      return resourceData.schoolId == s.schoolId;
     }
 
-    // STAFF
+    function teacherCanReadStudent(studentData) {
+      let s = staffDoc();
+      return s.role == "teacher"
+        && studentData.schoolId == s.schoolId;
+    }
+
+    // ---------------- STAFF ----------------
     match /staff/{userId} {
 
       // Owner: read all
       // Admin: read staff in same school
       // Any user: read own doc
-      allow read: if isOwner()
-               || request.auth.uid == userId
-               || (isAdmin() && resource.data.schoolId == staffDoc().schoolId);
+      allow read: if
+           isOwner()
+        || request.auth.uid == userId
+        || (isAdmin() && resource.data.schoolId == staffDoc().schoolId);
 
       // Owner: create admins
       // Admin: create teachers in own school
+      // Self-creation for admins via invite flow
       allow create: if
         (
           isOwner()
@@ -60,6 +68,12 @@ service cloud.firestore {
           isAdmin()
           && request.resource.data.role == "teacher"
           && request.resource.data.schoolId == staffDoc().schoolId
+        )
+        ||
+        (
+          isAuthenticated()
+          && request.resource.data.id == request.auth.uid
+          && request.resource.data.role == "admin"
         );
 
       // Owner: update admins
@@ -91,13 +105,30 @@ service cloud.firestore {
         );
     }
 
-    // SCHOOLS
+    // ---------------- INVITES (TOP-LEVEL) ----------------
+    match /invites/{inviteId} {
+
+      // Owner creates invites
+      allow create: if isOwner();
+
+      // Invite page needs to read by token (can be unauthenticated)
+      allow read: if true;
+
+      // Mark invite as used / update status.
+      // MVP için açık bırakıyoruz; istersen ileride sıkılaştırırız.
+      allow update: if true;
+
+      // (Opsiyonel) delete için sadece owner'a izin verebilirsin:
+      // allow delete: if isOwner();
+    }
+
+    // ---------------- SCHOOLS ----------------
     match /schools/{schoolId} {
       allow read: if isAuthenticated();
       allow create, update, delete: if isOwner();
     }
 
-    // CLASSES
+    // ---------------- CLASSES ----------------
     match /classes/{classId} {
 
       allow read: if
@@ -120,13 +151,12 @@ service cloud.firestore {
         && adminCanAccessResource(resource.data);
     }
 
-    function teacherCanReadStudent(studentData) {
-      let s = staffDoc();
-      return s.role == "teacher"
-          && studentData.schoolId == s.schoolId;
+    function ownerCanUpdateWristband() {
+      return isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wristbandStatus', 'schoolNumber', 'updatedAt']);
     }
 
-    // STUDENTS
+    // ---------------- STUDENTS ----------------
     match /students/{studentId} {
 
       allow read: if
@@ -137,7 +167,7 @@ service cloud.firestore {
         teacherCanReadStudent(resource.data);
 
       allow create: if teacherOwnsStudent(request.resource.data);
-      allow update: if teacherOwnsStudent(resource.data);
+      allow update: if teacherOwnsStudent(resource.data) || ownerCanUpdateWristband();
       allow delete: if teacherOwnsStudent(resource.data);
     }
   }

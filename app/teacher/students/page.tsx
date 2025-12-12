@@ -162,7 +162,12 @@ export default function TeacherStudentsPage() {
                                 </div>
                             </CardContent>
                             <CardFooter className="bg-gray-50/50 p-3 flex justify-end items-center border-t border-gray-100 gap-1">
-                                <Link href={`/teacher/students/${student.id}/edit`}>
+                                <Link
+                                    href={{
+                                        pathname: `/teacher/students/${student.id}/edit`,
+                                        query: { from: `/teacher/students?${searchParams.toString()}` }
+                                    }}
+                                >
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50">
                                         <Edit className="h-4 w-4" />
                                     </Button>

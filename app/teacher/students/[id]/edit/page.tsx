@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,9 @@ import { ArrowLeft, Loader2, Plus, Trash2, QrCode } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function EditStudentPage({ params }: { params: { id: string } }) {
+export default function EditStudentPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [schoolId, setSchoolId] = useState<string | null>(null);
@@ -53,6 +55,11 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
     const router = useRouter();
 
     useEffect(() => {
+        // Safety check for ID
+        if (!id) {
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -68,7 +75,7 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
                             setClasses(validClasses);
 
                             // Load student data
-                            const student = await getStudent(params.id);
+                            const student = await getStudent(id);
                             if (student) {
                                 // Verify student belongs to one of the teacher's classes
                                 if (!profile.classIds.includes(student.classId || "")) {
@@ -108,7 +115,7 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
             }
         });
         return () => unsubscribe();
-    }, [router, params.id]);
+    }, [router, id]);
 
     const addContact = () => {
         setContacts([...contacts, { name: "", relation: "", phone: "" }]);
@@ -131,16 +138,21 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
         e.preventDefault();
         if (!schoolId) return;
 
+        if (!id) {
+            alert("Error: Missing student ID");
+            return;
+        }
+
         setSaving(true);
         try {
             const selectedClass = classes.find(c => c.id === classId);
 
             let newPhotoUrl = currentPhotoUrl;
             if (photo) {
-                newPhotoUrl = await uploadStudentPhoto(photo, params.id);
+                newPhotoUrl = await uploadStudentPhoto(photo, id);
             }
 
-            await updateStudentForSchool(params.id, {
+            await updateStudentForSchool(id, {
                 firstName,
                 lastName,
                 classId,
@@ -158,7 +170,16 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
                 },
                 emergencyContacts: contacts,
             });
-            router.push("/teacher/students");
+
+            // Redirect back to context if available
+            const from = new URLSearchParams(window.location.search).get("from");
+            if (from) {
+                router.push(from);
+                router.refresh();
+            } else {
+                router.push("/teacher/students");
+                router.refresh();
+            }
         } catch (error) {
             console.error("Failed to update student:", error);
             alert("Failed to update student. Please try again.");
@@ -173,6 +194,14 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
         }
         return "";
     };
+
+    if (!id) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <p className="text-gray-500">Error: No student ID provided</p>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

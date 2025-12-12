@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,8 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export default function EditTeacherPage({ params }: { params: { id: string } }) {
+export default function EditTeacherPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
     const [availableClasses, setAvailableClasses] = useState<Class[]>([]);
     const [loading, setLoading] = useState(true);
@@ -23,6 +24,9 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
     const router = useRouter();
 
     useEffect(() => {
+        // Safety check
+        if (!id) return;
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 router.push("/admin/login");
@@ -31,7 +35,7 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
 
             try {
                 // 1. Get Teacher Profile
-                const teacherProfile = await getStaffProfile(params.id);
+                const teacherProfile = await getStaffProfile(id);
                 if (!teacherProfile || teacherProfile.role !== "teacher") {
                     alert("Teacher not found");
                     router.push("/admin/teachers");
@@ -54,7 +58,7 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
             }
         });
         return () => unsubscribe();
-    }, [params.id, router]);
+    }, [id, router]);
 
     const handleClassToggle = (classId: string) => {
         setSelectedClasses((prev) =>
@@ -66,9 +70,15 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        if (!id) {
+            alert("Error: Missing teacher ID");
+            return;
+        }
+
         setSaving(true);
         try {
-            await updateTeacherAssignments(params.id, selectedClasses);
+            await updateTeacherAssignments(id, selectedClasses);
             router.push("/admin/teachers");
         } catch (error) {
             console.error("Failed to update teacher:", error);
@@ -76,6 +86,14 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
         } finally {
             setSaving(false);
         }
+    }
+
+    if (!id) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <p className="text-gray-500">Error: No teacher ID provided</p>
+            </div>
+        );
     }
 
     if (loading) {

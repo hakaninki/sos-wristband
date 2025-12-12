@@ -29,6 +29,8 @@ export function StudentForm({ initialData, classes, onSubmit, isSubmitting }: St
     const [lastName, setLastName] = useState(initialData?.lastName || "");
     const [classId, setClassId] = useState(initialData?.classId || "");
     const [wristbandId, setWristbandId] = useState(initialData?.wristbandId || "");
+    const [schoolNumber, setSchoolNumber] = useState(initialData?.schoolNumber || "");
+    const [wristbandStatus, setWristbandStatus] = useState(initialData?.wristbandStatus || "none");
     const [notes, setNotes] = useState(initialData?.notes || "");
     const [photo, setPhoto] = useState<File | null>(null);
     const [currentPhotoUrl, setCurrentPhotoUrl] = useState(initialData?.photoUrl || "");
@@ -67,6 +69,8 @@ export function StudentForm({ initialData, classes, onSubmit, isSubmitting }: St
             lastName,
             classId,
             wristbandId,
+            schoolNumber,
+            wristbandStatus,
             notes,
             medical: {
                 bloodType,
@@ -133,6 +137,33 @@ export function StudentForm({ initialData, classes, onSubmit, isSubmitting }: St
                             onChange={(e) => setWristbandId(e.target.value)}
                             placeholder="Scan or enter ID"
                         />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="schoolNumber">School Number (Optional)</Label>
+                            <Input
+                                id="schoolNumber"
+                                value={schoolNumber}
+                                onChange={(e) => setSchoolNumber(e.target.value)}
+                                placeholder="e.g. 2023-001"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="wristbandStatus">Wristband Status</Label>
+                            <Select value={wristbandStatus} onValueChange={setWristbandStatus}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    <SelectItem value="needs_production">Needs Production</SelectItem>
+                                    <SelectItem value="produced">Produced</SelectItem>
+                                    <SelectItem value="shipped">Shipped</SelectItem>
+                                    <SelectItem value="active">Active</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="space-y-2">

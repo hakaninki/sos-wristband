@@ -5,8 +5,20 @@ export interface School {
     name: string;
     slug: string;
     logoUrl?: string;
-    address?: string;
-    phone?: string;
+    // Contact Info
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    // Address
+    address?: string; // using 'address' to map to requirements 'schoolAddress'
+    city?: string;
+    country?: string;
+    // Website
+    website?: string;
+    // Internal
+    ownerNotes?: string;
+
+    phone?: string; // Legacy/existing phone field
     active: boolean; // NEW: Soft delete / deactivation
     createdAt: Timestamp;
     updatedAt: Timestamp;
@@ -66,4 +78,8 @@ export interface Student {
     emergencyContacts: EmergencyContact[];
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
+
+    // Feature 5 New Fields
+    schoolNumber?: string; // School-specific ID (e.g. "2023-001")
+    wristbandStatus?: "none" | "needs_production" | "produced" | "shipped" | "active";
 }
